@@ -1174,7 +1174,33 @@ window.addEventListener('load', () => {
   loadTradingViewChart('eth-chart-widget', 'BINANCE:ETHUSDT');
   fetchFearGreed();
   setInterval(fetchFearGreed, 5 * 60 * 1000); // refresh every 5 min
+  autoLoadDashboard();
 });
+
+/* ══ AUTO-LOAD Dashboard.xlsx from GitHub repo ══ */
+async function autoLoadDashboard() {
+  const status = document.getElementById('uploadStatus');
+  try {
+    status.textContent = 'AUTO-LOADING…';
+    status.className = 'upload-status';
+
+    // Fetch Dashboard.xlsx directly from the GitHub repo (raw content)
+    const url = 'https://raw.githubusercontent.com/Delguidice8/No-Days-Off-Dashboard/main/Dashboard.xlsx';
+    const res = await fetch(url + '?cache=' + Date.now()); // cache-bust
+    if (!res.ok) throw new Error('Could not fetch Dashboard.xlsx (' + res.status + ')');
+
+    const arrayBuffer = await res.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array', cellDates: true });
+    parseWorkbook(wb);
+    status.textContent = '✓ Auto-loaded from GitHub';
+    status.className = 'upload-status loaded';
+    document.getElementById('footerLastUpdate').textContent = 'Auto-loaded: ' + new Date().toLocaleString();
+  } catch(err) {
+    status.textContent = 'Auto-load failed — drop file manually';
+    status.className = 'upload-status error';
+    console.warn('Auto-load error:', err);
+  }
+}
 </script>
 </body>
 </html>
